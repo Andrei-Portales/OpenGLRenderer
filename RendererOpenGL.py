@@ -69,6 +69,14 @@ while isRunning:
                 rend.filledMode()
             if ev.key == K_2:
                 rend.wireframeMode()
+            if ev.key == K_3:
+                rend.setShaders(shaders.vertex_shader, shaders.fragment_shader)
+            if ev.key == K_4:
+                rend.setShaders(shaders.vertex_shader_toon, shaders.fragment_shader_toon)
+            if ev.key == K_5:
+                rend.setShaders(shaders.vertex_gold_shader, shaders.fragment_shader)
+                
+            
 
     rend.tiempo += deltaTime
     deltaTime = clock.tick(60) / 1000
