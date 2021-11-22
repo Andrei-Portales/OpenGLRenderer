@@ -11,7 +11,8 @@ height = 540
 deltaTime = 0.0
 
 pygame.init()
-screen = pygame.display.set_mode((width,height), pygame.DOUBLEBUF | pygame.OPENGL )
+screen = pygame.display.set_mode(
+    (width, height), pygame.DOUBLEBUF | pygame.OPENGL)
 clock = pygame.time.Clock()
 
 rend = Renderer(screen)
@@ -19,8 +20,11 @@ rend.setShaders(shaders.vertex_shader, shaders.fragment_shader)
 
 face = Model('model.obj', 'model.bmp')
 face.position.z = -5
+face.rotation.y = 0
 
-rend.scene.append( face )
+rend.scene.append(face)
+
+rend.set_point_light(-5, 0, 0)
 
 
 isRunning = True
@@ -56,7 +60,6 @@ while isRunning:
     if keys[K_x]:
         rend.camRotation.y -= 15 * deltaTime
 
-
     for ev in pygame.event.get():
         if ev.type == pygame.QUIT:
             isRunning = False
@@ -71,12 +74,19 @@ while isRunning:
                 rend.wireframeMode()
             if ev.key == K_3:
                 rend.setShaders(shaders.vertex_shader, shaders.fragment_shader)
+
             if ev.key == K_4:
-                rend.setShaders(shaders.vertex_shader_toon, shaders.fragment_shader_toon)
+                rend.setShaders(shaders.vertex_toon_shader,
+                                shaders.fragment_toon_shader) # 1
             if ev.key == K_5:
-                rend.setShaders(shaders.vertex_gold_shader, shaders.fragment_shader)
-                
-            
+                rend.setShaders(shaders.vertex_rainbow_shader,
+                                shaders.fragment_rainbow_shader) # 2
+            if ev.key == K_6:
+                rend.setShaders(shaders.vertex_static_shader, shaders.fragment_static_shader) # 3
+
+            if ev.key == K_7:
+                rend.setShaders(shaders.vertex_toon_shader, shaders.fragment_termic_shader)
+
 
     rend.tiempo += deltaTime
     deltaTime = clock.tick(60) / 1000

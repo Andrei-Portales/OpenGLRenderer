@@ -3,6 +3,7 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 from pygame import image
 from numpy import array, float32
+import random
 
 import obj
 
@@ -169,6 +170,9 @@ class Renderer(object):
 
         return glm.inverse(camMatrix)
 
+    def set_point_light(self, x, y, z):
+        self.pointLight = glm.vec3(x, y, z)
+
 
     def wireframeMode(self):
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -192,17 +196,13 @@ class Renderer(object):
         glUseProgram(self.active_shader)
 
         if self.active_shader:
-            glUniformMatrix4fv(glGetUniformLocation(self.active_shader, "viewMatrix"),
-                               1, GL_FALSE, glm.value_ptr(self.getViewMatrix()))
-
-            glUniformMatrix4fv(glGetUniformLocation(self.active_shader, "projectionMatrix"),
-                               1, GL_FALSE, glm.value_ptr(self.projectionMatrix))
-
+            glUniformMatrix4fv(glGetUniformLocation(self.active_shader, "viewMatrix"), 1, GL_FALSE, glm.value_ptr(self.getViewMatrix()))
+            glUniformMatrix4fv(glGetUniformLocation(self.active_shader, "projectionMatrix"), 1, GL_FALSE, glm.value_ptr(self.projectionMatrix))
             glUniform1f(glGetUniformLocation(self.active_shader, "tiempo"), self.tiempo)
             glUniform1f(glGetUniformLocation(self.active_shader, "valor"), self.valor)
-
-            glUniform3f(glGetUniformLocation(self.active_shader, "pointLight"),
-                        self.pointLight.x, self.pointLight.y, self.pointLight.z)
+            glUniform3f(glGetUniformLocation(self.active_shader, "pointLight"), self.pointLight.x, self.pointLight.y, self.pointLight.z)
+            glUniform3f(glGetUniformLocation(self.active_shader, "randomColor"), random.random(), random.random(), random.random())
+            glUniform2f(glGetUniformLocation(self.active_shader, "random2"), random.random(), random.random())
 
 
         for model in self.scene:
