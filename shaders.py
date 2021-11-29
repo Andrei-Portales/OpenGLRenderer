@@ -30,7 +30,7 @@ void main()
 
     gl_Position = projectionMatrix * viewMatrix * pos;
 
-    outColor = vec3(1.0,1.0 - valor * 2,1.0-valor * 2) * intensity;
+    outColor = vec3(1.0,1.0 - valor * 2,1.0-valor * 2) * intensity * 2;
     outTexCoords = texCoords;
 }
 """

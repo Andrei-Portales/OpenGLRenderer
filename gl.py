@@ -1,11 +1,12 @@
 import glm
-from OpenGL.GL import * 
+from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 from pygame import image
 from numpy import array, float32
 import random
 
 import obj
+
 
 class Model(object):
     def __init__(self, objName, textureName):
@@ -14,30 +15,30 @@ class Model(object):
 
         self.createVertexBuffer()
 
-        self.position = glm.vec3(0,0,0)
-        self.rotation = glm.vec3(0,0,0)
-        self.scale = glm.vec3(1,1,1)
+        self.position = glm.vec3(0, 0, 0)
+        self.rotation = glm.vec3(0, 0, 0)
+        self.scale = glm.vec3(1, 1, 1)
 
         self.textureSurface = image.load(textureName)
         self.textureData = image.tostring(self.textureSurface, "RGB", True)
         self.texture = glGenTextures(1)
-
 
     def getModelMatrix(self):
         identity = glm.mat4(1)
 
         translateMatrix = glm.translate(identity, self.position)
 
-        pitch = glm.rotate(identity, glm.radians( self.rotation.x ), glm.vec3(1,0,0) )
-        yaw   = glm.rotate(identity, glm.radians( self.rotation.y ), glm.vec3(0,1,0) )
-        roll  = glm.rotate(identity, glm.radians( self.rotation.z ), glm.vec3(0,0,1) )
+        pitch = glm.rotate(identity, glm.radians(
+            self.rotation.x), glm.vec3(1, 0, 0))
+        yaw = glm.rotate(identity, glm.radians(
+            self.rotation.y), glm.vec3(0, 1, 0))
+        roll = glm.rotate(identity, glm.radians(
+            self.rotation.z), glm.vec3(0, 0, 1))
         rotationMatrix = pitch * yaw * roll
 
         scaleMatrix = glm.scale(identity, self.scale)
 
         return translateMatrix * rotationMatrix * scaleMatrix
-
-
 
     def createVertexBuffer(self):
 
@@ -62,21 +63,21 @@ class Model(object):
                 buffer.append(uvs[0])
                 buffer.append(uvs[1])
 
-        self.vertBuffer = array(buffer, dtype = float32)
+        self.vertBuffer = array(buffer, dtype=float32)
 
-        self.VBO = glGenBuffers(1) #Vertex Buffer Object
-        self.VAO = glGenVertexArrays(1) #Vertex Array Object
+        self.VBO = glGenBuffers(1)  # Vertex Buffer Object
+        self.VAO = glGenVertexArrays(1)  # Vertex Array Object
 
     def renderInScene(self):
-        
+
         glBindVertexArray(self.VAO)
         glBindBuffer(GL_ARRAY_BUFFER, self.VBO)
 
         # Los vertices
-        glBufferData(GL_ARRAY_BUFFER,           #Buffer ID
-                     self.vertBuffer.nbytes,    #Buffer size in bytes
-                     self.vertBuffer,           #Buffer data
-                     GL_STATIC_DRAW )           #Usage
+        glBufferData(GL_ARRAY_BUFFER,  # Buffer ID
+                     self.vertBuffer.nbytes,  # Buffer size in bytes
+                     self.vertBuffer,  # Buffer data
+                     GL_STATIC_DRAW)  # Usage
 
         # Atributo de posicion
         glVertexAttribPointer(0,                # Attribute number
@@ -84,7 +85,7 @@ class Model(object):
                               GL_FLOAT,         # Type
                               GL_FALSE,         # It it normalized?
                               4 * 8,            # Stride
-                              ctypes.c_void_p(0)) # Offset
+                              ctypes.c_void_p(0))  # Offset
 
         glEnableVertexAttribArray(0)
 
@@ -97,7 +98,6 @@ class Model(object):
                               ctypes.c_void_p(4 * 3))
 
         glEnableVertexAttribArray(1)
-
 
         # Atributo de coordenadas de textura
         glVertexAttribPointer(2,
@@ -123,10 +123,9 @@ class Model(object):
 
         glGenerateMipmap(GL_TEXTURE_2D)
 
-
-
         # Dibujar
-        glDrawArrays(GL_TRIANGLES, 0, len(self.model.faces) * 3 ) # Para dibujar vertices en orden
+        glDrawArrays(GL_TRIANGLES, 0, len(self.model.faces)
+                     * 3)  # Para dibujar vertices en orden
 
 
 class Renderer(object):
@@ -135,7 +134,7 @@ class Renderer(object):
         _, _, self.width, self.height = screen.get_rect()
 
         glEnable(GL_DEPTH_TEST)
-        glViewport(0,0, self.width, self.height)
+        glViewport(0, 0, self.width, self.height)
 
         self.scene = []
 
@@ -145,8 +144,8 @@ class Renderer(object):
         self.valor = 0
 
         # View Matrix
-        self.camPosition = glm.vec3(0,0,0)
-        self.camRotation = glm.vec3(0,0,0) # pitch, yaw, roll
+        self.camPosition = glm.vec3(0, 0, 0)
+        self.camRotation = glm.vec3(0, 0, 0)  # pitch, yaw, roll
 
         # Projection Matrix
         self.projectionMatrix = glm.perspective(glm.radians(60),            # FOV en radianes
@@ -154,15 +153,75 @@ class Renderer(object):
                                                 0.1,                        # Near Plane distance
                                                 1000)                       # Far plane distance
 
+        self.angle = 0
+        self.angleY = 0
+        self.viewMatrix = glm.mat4(1)
+        self.distanceRadius = 5
+
+                                                
+    def rotateLeft(self, target, amount):
+        self.angle += amount
+
+        self.camPosition.x = glm.sin(glm.radians(self.angle)) * self.distanceRadius
+        self.camPosition.z = glm.cos(glm.radians(self.angle)) * self.distanceRadius
+
+        self.viewMatrix = glm.lookAt(target - self.camPosition, target, glm.vec3(0.0, 1.0, 0.0))
+        
+
+
+    def rotateRight(self, target, amount):
+        self.angle -= amount
+
+        self.camPosition.x = glm.sin(glm.radians(self.angle)) * self.distanceRadius
+        self.camPosition.z = glm.cos(glm.radians(self.angle)) * self.distanceRadius
+
+        self.viewMatrix = glm.lookAt(target - self.camPosition, target, glm.vec3(0.0, 1.0, 0.0))
+
+    def rotateUp(self, target, amount):
+        self.angleY += amount
+
+        self.camPosition.y = glm.cos(glm.radians(self.angleY)) * self.distanceRadius
+        self.camPosition.z = glm.sin(glm.radians(self.angleY)) * self.distanceRadius
+
+        self.viewMatrix = glm.lookAt(target - self.camPosition, target, glm.vec3(0.0, 1.0, 0.0))
+
+    def rotateDown(self, target, amount):
+        self.angleY -= amount
+
+        self.camPosition.y = glm.cos(glm.radians(self.angleY)) * self.distanceRadius
+        self.camPosition.z = glm.sin(glm.radians(self.angleY)) * self.distanceRadius
+
+        self.viewMatrix = glm.lookAt(target - self.camPosition, target, glm.vec3(0.0, 1.0, 0.0))
+
+    def zoomIn(self, target, amount):
+        self.angleY += amount
+
+        # self.camPosition.y = glm.cos(glm.radians(self.angleY)) * self.distanceRadius
+        self.camPosition.z = glm.sin(glm.radians(self.angleY)) * self.distanceRadius
+
+        self.viewMatrix = glm.lookAt(target - self.camPosition, target, glm.vec3(0.0, 1.0, 0.0))
+
+    def zoomOut(self, target, amount):
+        self.angleY -= amount
+
+        # self.camPosition.y = glm.cos(glm.radians(self.angleY)) * self.distanceRadius
+        self.camPosition.z = glm.sin(glm.radians(self.angleY)) * self.distanceRadius
+
+        self.viewMatrix = glm.lookAt(target - self.camPosition, target, glm.vec3(0.0, 1.0, 0.0))
+
+        
 
     def getViewMatrix(self):
         identity = glm.mat4(1)
 
         translateMatrix = glm.translate(identity, self.camPosition)
 
-        pitch = glm.rotate(identity, glm.radians( self.camRotation.x ), glm.vec3(1,0,0) )
-        yaw   = glm.rotate(identity, glm.radians( self.camRotation.y ), glm.vec3(0,1,0) )
-        roll  = glm.rotate(identity, glm.radians( self.camRotation.z ), glm.vec3(0,0,1) )
+        pitch = glm.rotate(identity, glm.radians(
+            self.camRotation.x), glm.vec3(1, 0, 0))
+        yaw = glm.rotate(identity, glm.radians(
+            self.camRotation.y), glm.vec3(0, 1, 0))
+        roll = glm.rotate(identity, glm.radians(
+            self.camRotation.z), glm.vec3(0, 0, 1))
 
         rotationMatrix = pitch * yaw * roll
 
@@ -173,37 +232,40 @@ class Renderer(object):
     def set_point_light(self, x, y, z):
         self.pointLight = glm.vec3(x, y, z)
 
-
     def wireframeMode(self):
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
     def filledMode(self):
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
-
     def setShaders(self, vertexShader, fragShader):
         if vertexShader is not None and fragShader is not None:
-            self.active_shader = compileProgram( compileShader(vertexShader, GL_VERTEX_SHADER),
-                                                 compileShader(fragShader, GL_FRAGMENT_SHADER))
+            self.active_shader = compileProgram(compileShader(vertexShader, GL_VERTEX_SHADER),
+                                                compileShader(fragShader, GL_FRAGMENT_SHADER))
         else:
             self.active_shader = None
 
-
     def render(self):
-        glClearColor(0.2,0.2,0.2,1)
+        glClearColor(0.2, 0.2, 0.2, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glUseProgram(self.active_shader)
 
         if self.active_shader:
-            glUniformMatrix4fv(glGetUniformLocation(self.active_shader, "viewMatrix"), 1, GL_FALSE, glm.value_ptr(self.getViewMatrix()))
-            glUniformMatrix4fv(glGetUniformLocation(self.active_shader, "projectionMatrix"), 1, GL_FALSE, glm.value_ptr(self.projectionMatrix))
-            glUniform1f(glGetUniformLocation(self.active_shader, "tiempo"), self.tiempo)
-            glUniform1f(glGetUniformLocation(self.active_shader, "valor"), self.valor)
-            glUniform3f(glGetUniformLocation(self.active_shader, "pointLight"), self.pointLight.x, self.pointLight.y, self.pointLight.z)
-            glUniform3f(glGetUniformLocation(self.active_shader, "randomColor"), random.random(), random.random(), random.random())
-            glUniform2f(glGetUniformLocation(self.active_shader, "random2"), random.random(), random.random())
-
+            glUniformMatrix4fv(glGetUniformLocation(
+                self.active_shader, "viewMatrix"), 1, GL_FALSE, glm.value_ptr(self.viewMatrix))
+            glUniformMatrix4fv(glGetUniformLocation(
+                self.active_shader, "projectionMatrix"), 1, GL_FALSE, glm.value_ptr(self.projectionMatrix))
+            glUniform1f(glGetUniformLocation(
+                self.active_shader, "tiempo"), self.tiempo)
+            glUniform1f(glGetUniformLocation(
+                self.active_shader, "valor"), self.valor)
+            glUniform3f(glGetUniformLocation(self.active_shader, "pointLight"),
+                        self.pointLight.x, self.pointLight.y, self.pointLight.z)
+            glUniform3f(glGetUniformLocation(self.active_shader, "randomColor"),
+                        random.random(), random.random(), random.random())
+            glUniform2f(glGetUniformLocation(self.active_shader,
+                                             "random2"), random.random(), random.random())
 
         for model in self.scene:
             if self.active_shader:
@@ -211,4 +273,3 @@ class Renderer(object):
                                    1, GL_FALSE, glm.value_ptr(model.getModelMatrix()))
 
             model.renderInScene()
-
